@@ -111,6 +111,8 @@ class FlutterArkitView: NSObject, FlutterPlatformView {
             onDepthResolution(result)
         case "depthImage":
             onDepthImage(result)
+        case "viewport":
+            onViewport(result)
         default:
             result(FlutterMethodNotImplemented)
         }
