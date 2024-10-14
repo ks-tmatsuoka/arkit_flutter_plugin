@@ -291,6 +291,36 @@ extension FlutterArkitView {
         result(nil)
     }
 
+    func onDepthImage(_ result: FlutterResult) {
+        if let frame = sceneView.session.currentFrame {
+            if let sceneDepth = frame.sceneDepth {
+                let depthMap = sceneDepth.depthMap
+                let width = CVPixelBufferGetWidth(depthMap)
+                let height = CVPixelBufferGetHeight(depthMap)
+                CVPixelBufferLockBaseAddress(depthMap, CVPixelBufferLockFlags(readOnly))
+                guard let baseAddress = CVPixelBufferGetBaseAddress(depthMap) else {
+                    CVPixelBufferUnlockBaseAddress(depthMap, CVPixelBufferLockFlags(readOnly))
+                    result(nil)
+                    return
+                }
+                var depthArray = [Float](repeating: 0, count: width * height)
+                let floatPointer = baseAddress.assumingMemoryBound(to: Float.self)
+                for y in 0..<height {
+                    for x in 0..<width {
+                        let index = y * width + x
+                        depthArray[index] = floatPointer[index]
+                    }
+                }
+                CVPixelBufferUnlockBaseAddress(depthMap, CVPixelBufferLockFlags(readOnly))
+                let res = FlutterStandardTypedData(float32: depthArray)
+                result(res)
+                return
+            }
+        } else {
+            result(nil)
+        }
+    }
+
     func onGetSnapshot(_ result: FlutterResult) {
         let snapshotImage = sceneView.snapshot()
         if let bytes = snapshotImage.pngData() {
