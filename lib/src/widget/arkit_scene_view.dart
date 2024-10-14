@@ -763,7 +763,7 @@ class ARKitController {
     return result != null ? MemoryImage(result!) : null;
   }
 
-  Future<Size> getDepthResolution() async {
+  Future<Size?> getDepthResolution() async {
     final result = await _channel.invokeMethod<Uint8List>('depthResolution');
     if (result != null) {
         final vector2 = _vector2Converter.fromJson(result!);
