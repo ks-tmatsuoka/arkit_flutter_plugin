@@ -258,7 +258,8 @@ extension FlutterArkitView {
 
     func onCameraImageResolution(_ result: FlutterResult) {
         if let frame = sceneView.session.currentFrame {
-            let res = serializeSize(frame.camera.imageResolution)
+            let size = frame.camera.imageResolution
+            let res = serializeSize(CGSize(width: size.height, height: size.width))
             result(res)
         } else {
             result(nil)
