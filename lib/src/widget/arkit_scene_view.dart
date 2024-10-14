@@ -754,7 +754,7 @@ class ARKitController {
     return MemoryImage(result!);
   }
 
-  Future<ImageProvider> getCapturedImage() async {
+  Future<ImageProvider?> getCapturedImage() async {
     final result = await _channel.invokeMethod<Uint8List>('capturedImage');
     return result != null ? MemoryImage(result!) : null;
   }
