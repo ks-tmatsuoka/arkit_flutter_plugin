@@ -267,10 +267,8 @@ extension FlutterArkitView {
 
     func onCameraCapturedImage(_ result: FlutterResult) {
         if let frame = sceneView.session.currentFrame {
-            let originalImage = UIImage(ciImage: CIImage(cvPixelBuffer: frame.capturedImage))
-            let rotatedImage = rotateImage(originalImage, by: 90)
-            if let bytes = rotatedImage.pngData() {
-                let res = FlutterStandardTypedData(bytes: bytes)
+            if let image = UIImage(ciImage: CIImage(cvPixelBuffer: frame.capturedImage), orientation: .left) {
+                let res = FlutterStandardTypedData(bytes: image.pngData())
                 result(res)
             } else {
                 result(nil)
@@ -278,30 +276,6 @@ extension FlutterArkitView {
         } else {
             result(nil)
         }
-    }
-
-    func rotateImage(_ image: UIImage, by degrees: CGFloat) -> UIImage {
-        let radians = degrees * .pi / 180
-        var newSize = CGRect(origin: CGPoint.zero, size: image.size)
-            .applying(CGAffineTransform(rotationAngle: radians))
-            .size
-        
-        newSize.height = abs(newSize.height)
-        newSize.width = abs(newSize.width)
-        
-        UIGraphicsBeginImageContextWithOptions(newSize, false, image.scale)
-        let context = UIGraphicsGetCurrentContext()
-        
-        context?.translateBy(x: newSize.width / 2, y: newSize.height / 2)
-        context?.rotate(by: radians)
-        context?.scaleBy(x: 1.0, y: -1.0)
-        
-        context?.draw(image.cgImage!, in: CGRect(x: -image.size.width / 2, y: -image.size.height / 2, width: image.size.width, height: image.size.height))
-        
-        let rotatedImage = UIGraphicsGetImageFromCurrentImageContext()
-        UIGraphicsEndImageContext()
-        
-        return rotatedImage ?? image
     }
 
     func onDepthResolution(_ result: FlutterResult) {
