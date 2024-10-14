@@ -773,6 +773,11 @@ class ARKitController {
     }
   }
 
+  Future<Float32List?> getDepthImage() async {
+    final result = await _channel.invokeMethod<Float32List>('depthImage');
+    return result != null ? MemoryImage(result!) : null;
+  }
+
   Future<Vector3?> cameraPosition() async {
     final result = await _channel.invokeListMethod('cameraPosition');
     if (result != null) {
