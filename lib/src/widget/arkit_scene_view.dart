@@ -794,4 +794,14 @@ class ARKitController {
       return null;
     }
   }
+
+  Future<Size?> getViewport() async {
+    final result = await _channel.invokeListMethod('viewport');
+    if (result != null) {
+        final vector2 = _vector2Converter.fromJson(result!);
+        return Size(vector2.x, vector2.y);
+    } else {
+        return null;
+    }
+  }
 }
