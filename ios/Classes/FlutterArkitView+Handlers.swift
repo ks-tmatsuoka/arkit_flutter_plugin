@@ -279,7 +279,7 @@ extension FlutterArkitView {
 
     func onDepthResolution(_ result: FlutterResult) {
         if let frame = sceneView.session.currentFrame {
-            guard let depthData = frame.capturedDepthData {
+            let depthData = frame.capturedDepthData {
                 let depthMap = depthData.depthDataMap
                 let width = CVPixelBufferGetWidth(depthMap)
                 let height = CVPixelBufferGetHeight(depthMap)
