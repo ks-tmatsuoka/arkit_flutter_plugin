@@ -1,4 +1,5 @@
 import ARKit
+import CoreVideo
 
 extension FlutterArkitView {
     func onAddNode(_ arguments: [String: Any]) {
