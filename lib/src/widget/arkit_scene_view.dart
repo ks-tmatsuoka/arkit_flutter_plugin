@@ -764,7 +764,7 @@ class ARKitController {
   }
 
   Future<Size?> getDepthResolution() async {
-    final result = await _channel.invokeMethod<Uint8List>('depthResolution');
+    final result = await _channel.invokeListMethod('depthResolution');
     if (result != null) {
         final vector2 = _vector2Converter.fromJson(result!);
         return Size(vector2.x, vector2.y);
