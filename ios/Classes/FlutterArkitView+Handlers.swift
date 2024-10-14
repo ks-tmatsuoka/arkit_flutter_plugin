@@ -266,7 +266,7 @@ extension FlutterArkitView {
 
     func onCameraCapturedImage(_ result: FlutterResult) {
         if let frame = sceneView.session.currentFrame {
-            if let bytes = fixImageOrientation(pixelBuffer: frame.capturedImage)).pngData() {
+            if let bytes = fixImageOrientation(pixelBuffer: frame.capturedImage).pngData() {
                 let res = FlutterStandardTypedData(bytes: bytes)
                 result(res)
             } else {
