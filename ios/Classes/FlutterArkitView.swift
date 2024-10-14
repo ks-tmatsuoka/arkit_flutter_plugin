@@ -113,6 +113,8 @@ class FlutterArkitView: NSObject, FlutterPlatformView {
             onDepthImage(result)
         case "viewport":
             onViewport(result)
+        case "viewMatrix"
+            onViewMatrix(result)
         default:
             result(FlutterMethodNotImplemented)
         }
