@@ -765,8 +765,12 @@ class ARKitController {
 
   Future<Size> getDepthResolution() async {
     final result = await _channel.invokeMethod<Uint8List>('depthResolution');
-    final vector2 = _vector2Converter.fromJson(result!);
-    return Size(vector2.x, vector2.y);
+    if (result != null) {
+        final vector2 = _vector2Converter.fromJson(result!);
+        return Size(vector2.x, vector2.y);
+    } else {
+        return null;
+    }
   }
 
   Future<Vector3?> cameraPosition() async {
