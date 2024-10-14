@@ -277,7 +277,7 @@ extension FlutterArkitView {
         }
     }
 
-    func onCameraDepthResolution(_ result: FlutterResult) {
+    func onDepthResolution(_ result: FlutterResult) {
         if let frame = sceneView.session.currentFrame {
             guard let depthData = frame.capturedDepthData {
                 let depthMap = depthData.depthDataMap
