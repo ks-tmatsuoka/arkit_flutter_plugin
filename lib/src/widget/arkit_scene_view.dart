@@ -401,6 +401,14 @@ class ARKitController {
         : null;
   }
 
+  Future<Vector3?> unprojectPoint(Vector3 point) async {
+    final unprojectPoint = await _channel.invokeListMethod<double>(
+        'unprojectPoint', {'point': _vector3Converter.toJson(point)});
+    return unprojectPoint != null
+        ? _vector3Converter.fromJson(unprojectPoint)
+        : null;
+  }
+
   Future<Matrix4?> cameraProjectionMatrix() async {
     final cameraProjectionMatrix =
         await _channel.invokeListMethod<double>('cameraProjectionMatrix');
