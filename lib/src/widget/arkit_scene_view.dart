@@ -759,6 +759,11 @@ class ARKitController {
     return MemoryImage(result!);
   }
 
+  Future<ImageProvider> getCapturedDepth() async {
+    final result = await _channel.invokeMethod<Uint8List>('capturedDepth');
+    return MemoryImage(result!);
+  }
+
   Future<Vector3?> cameraPosition() async {
     final result = await _channel.invokeListMethod('cameraPosition');
     if (result != null) {
