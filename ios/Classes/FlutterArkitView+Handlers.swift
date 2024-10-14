@@ -307,7 +307,7 @@ extension FlutterArkitView {
                 let floatPointer = baseAddress.assumingMemoryBound(to: Float.self)
                 for y in 0..<height {
                     for x in 0..<width {
-                        depthArray[x * height + y] = floatPointer[y * width + x]
+                        depthArray[x * height + (height-y-1)] = floatPointer[y * width + x]
                     }
                 }
                 CVPixelBufferUnlockBaseAddress(depthMap, CVPixelBufferLockFlags.readOnly)
