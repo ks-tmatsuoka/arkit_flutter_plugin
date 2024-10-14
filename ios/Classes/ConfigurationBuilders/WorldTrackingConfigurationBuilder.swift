@@ -35,7 +35,9 @@ func createWorldTrackingConfiguration(_ arguments: [String: Any]) -> ARWorldTrac
         }
         if let depthImage = arguments["depthImage"] as? Int {
             if depthImage == 1 {
-                worldTrackingConfiguration.frameSemantics = [.sceneDepth, .smoothedSceneDepth]
+                if ARWorldTrackingConfiguration.supportsFrameSemantics([.sceneDepth, .smoothedSceneDepth]) {
+                    worldTrackingConfiguration.frameSemantics = [.sceneDepth, .smoothedSceneDepth]
+                }
             }
         }
 
