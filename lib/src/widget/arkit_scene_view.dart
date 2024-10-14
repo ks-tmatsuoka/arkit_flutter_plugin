@@ -756,7 +756,7 @@ class ARKitController {
 
   Future<ImageProvider> getCapturedImage() async {
     final result = await _channel.invokeMethod<Uint8List>('capturedImage');
-    return MemoryImage(result!);
+    return result != null ? MemoryImage(result!) : null;
   }
 
   Future<Size> getDepthResolution() async {
