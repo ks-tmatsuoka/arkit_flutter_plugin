@@ -737,10 +737,14 @@ class ARKitController {
     return vector3;
   }
 
-  Future<Size> getCameraImageResolution() async {
+  Future<Size?> getCameraImageResolution() async {
     final result = await _channel.invokeListMethod('cameraImageResolution');
-    final vector2 = _vector2Converter.fromJson(result!);
-    return Size(vector2.x, vector2.y);
+    if (result != null) {
+        final vector2 = _vector2Converter.fromJson(result!);
+        return Size(vector2.x, vector2.y);
+    } else {
+        return null;
+    }
   }
 
   Future<Matrix3> getCameraIntrinsics() async {
