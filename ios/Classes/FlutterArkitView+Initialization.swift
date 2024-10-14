@@ -63,13 +63,6 @@ extension FlutterArkitView {
             } else {
                 logPluginError("configuration is not supported on this device", toChannel: channel)
             }
-        case 4:
-            if #available(iOS 14.0, *) && ARWorldTrackingConfiguration.supportsFrameSemantics([.sceneDepth, .smoothedSceneDepth]) {
-                let configuration = ARWorldTrackingConfiguration()
-                configuration.frameSemantics = [.sceneDepth, .smoothedSceneDepth]
-            } else {
-                logPluginError("configuration is not supported on this device", toChannel: channel)
-            }
         default:
             break
         }
