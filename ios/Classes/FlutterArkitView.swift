@@ -79,6 +79,8 @@ class FlutterArkitView: NSObject, FlutterPlatformView {
             result(nil)
         case "projectPoint":
             onProjectPoint(arguments!, result)
+        case "unprojectPoint":
+            onUnprojectPoint(arguments!, result)
         case "cameraProjectionMatrix":
             onCameraProjectionMatrix(result)
         case "pointOfViewTransform":
