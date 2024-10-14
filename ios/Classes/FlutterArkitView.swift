@@ -105,6 +105,8 @@ class FlutterArkitView: NSObject, FlutterPlatformView {
             onCameraCapturedImage(result)
         case "cameraPosition":
             onGetCameraPosition(result)
+        case "depthResolution":
+            onDepthResolution(result)
         default:
             result(FlutterMethodNotImplemented)
         }
