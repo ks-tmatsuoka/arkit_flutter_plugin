@@ -33,6 +33,11 @@ func createWorldTrackingConfiguration(_ arguments: [String: Any]) -> ARWorldTrac
         if let maximumNumberOfTrackedImages = arguments["maximumNumberOfTrackedImages"] as? Int {
             worldTrackingConfiguration.maximumNumberOfTrackedImages = maximumNumberOfTrackedImages
         }
+        if let depthImage = arguments["depthImage"] as? Int {
+            if depthImage == 1 {
+                worldTrackingConfiguration.frameSemantics = [.sceneDepth, .smoothedSceneDepth]
+            }
+        }
 
         return worldTrackingConfiguration
     }
