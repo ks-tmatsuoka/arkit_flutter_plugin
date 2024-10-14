@@ -19,4 +19,7 @@ enum ARKitConfiguration {
   /// A configuration for running body tracking.
   /// Body tracking provides 6 degrees of freedom tracking of a detected body in the scene.
   bodyTracking,
+
+  /// A configuration for Depth image
+  depthTracking,
 }
