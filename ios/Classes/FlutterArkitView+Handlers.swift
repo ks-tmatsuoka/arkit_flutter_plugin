@@ -211,6 +211,16 @@ extension FlutterArkitView {
         }
     }
 
+    func onViewMatrix(_ result: FlutterResult) {
+        if let frame = sceneView.session.currentFrame {
+            let matrix = serializeMatrix(frame.camera.viewMatrix)
+            result(matrix)
+        } else {
+            result(nil)
+        }
+    }
+
+
     func onPointOfViewTransform(_ result: FlutterResult) {
         if let pointOfView = sceneView.pointOfView {
             let matrix = serializeMatrix(pointOfView.simdWorldTransform)
@@ -219,7 +229,7 @@ extension FlutterArkitView {
             result(nil)
         }
     }
-
+    
     func onPlayAnimation(_ arguments: [String: Any]) {
         guard let key = arguments["key"] as? String,
               let sceneName = arguments["sceneName"] as? String,
