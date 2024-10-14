@@ -266,7 +266,7 @@ extension FlutterArkitView {
 
     func onCameraCapturedImage(_ result: FlutterResult) {
         if let frame = sceneView.session.currentFrame {
-            if let bytes = UIImage(ciImage: CIImage(cvPixelBuffer: frame.capturedImage)).pngData() {
+            if let bytes = fixImageOrientation(pixelBuffer: frame.capturedImage)).pngData() {
                 let res = FlutterStandardTypedData(bytes: bytes)
                 result(res)
             } else {
@@ -275,6 +275,39 @@ extension FlutterArkitView {
         } else {
             result(nil)
         }
+    }
+
+    func fixImageOrientation(pixelBuffer: CVPixelBuffer) -> UIImage? {
+        let ciImage = CIImage(cvPixelBuffer: pixelBuffer)
+        
+        // CIImageからUIImageを作成する
+        let uiImage = UIImage(ciImage: ciImage)
+        
+        // 現在のデバイスの向きを取得
+        let orientation = UIApplication.shared.windows.first?.windowScene?.interfaceOrientation
+        
+        var rotatedImageOrientation: UIImage.Orientation = .up
+        
+        switch orientation {
+        case .portrait:
+            rotatedImageOrientation = .right
+        case .portraitUpsideDown:
+            rotatedImageOrientation = .left
+        case .landscapeLeft:
+            rotatedImageOrientation = .up
+        case .landscapeRight:
+            rotatedImageOrientation = .down
+        default:
+            rotatedImageOrientation = .up
+        }
+        
+        // UIImageを正しい向きに回転して新しいUIImageを作成
+        if let cgImage = uiImage.cgImage {
+            let fixedImage = UIImage(cgImage: cgImage, scale: 1.0, orientation: rotatedImageOrientation)
+            return fixedImage
+        }
+        
+        return nil
     }
 
     func onDepthResolution(_ result: FlutterResult) {
