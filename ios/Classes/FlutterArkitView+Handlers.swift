@@ -190,6 +190,18 @@ extension FlutterArkitView {
         result(res)
     }
 
+    func onUnprojectPoint(_ arguments: [String: Any], _ result: FlutterResult) {
+        guard let rawPoint = arguments["point"] as? [Double] else {
+            logPluginError("deserialization failed", toChannel: channel)
+            result(nil)
+            return
+        }
+        let point = deserizlieVector3(rawPoint)
+        let unprojectedPoint = sceneView.unprojectPoint(point)
+        let res = serializeVector(unprojectedPoint)
+        result(res)
+    }
+
     func onCameraProjectionMatrix(_ result: FlutterResult) {
         if let frame = sceneView.session.currentFrame {
             let matrix = serializeMatrix(frame.camera.projectionMatrix)
