@@ -352,4 +352,9 @@ extension FlutterArkitView {
             result(nil)
         }
     }
+
+    func onViewport(_ result: FlutterResult) {
+        let res = serializeSize(sceneView.frame.size)
+        result(res)
+    }
 }
