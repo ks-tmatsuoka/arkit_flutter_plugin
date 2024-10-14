@@ -282,9 +282,7 @@ extension FlutterArkitView {
         if let frame = sceneView.session.currentFrame {
             if let sceneDepth = frame.sceneDepth {
                 let depthMap = sceneDepth.depthMap
-                let width = CVPixelBufferGetWidth(depthMap)
-                let height = CVPixelBufferGetHeight(depthMap)
-                let res = serializeSize(CGSize(width: width, height: height))
+                let res = serializeSize(CGSize(width: CVPixelBufferGetHeight(depthMap), height: CVPixelBufferGetWidth(depthMap)))
                 result(res)
                 return
             }
@@ -308,8 +306,7 @@ extension FlutterArkitView {
                 let floatPointer = baseAddress.assumingMemoryBound(to: Float.self)
                 for y in 0..<height {
                     for x in 0..<width {
-                        let index = y * width + x
-                        depthArray[index] = floatPointer[index]
+                        depthArray[x * height + y] = floatPointer[y * width + x]
                     }
                 }
                 CVPixelBufferUnlockBaseAddress(depthMap, CVPixelBufferLockFlags.readOnly)
