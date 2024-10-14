@@ -313,7 +313,7 @@ extension FlutterArkitView {
                     }
                 }
                 CVPixelBufferUnlockBaseAddress(depthMap, CVPixelBufferLockFlags.readOnly)
-                let res = FlutterStandardTypedData(bytes: depthMap)
+                let res = FlutterStandardTypedData(float32: depthArray)
                 result(res)
                 return
             }
