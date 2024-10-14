@@ -298,9 +298,9 @@ extension FlutterArkitView {
                 let depthMap = sceneDepth.depthMap
                 let width = CVPixelBufferGetWidth(depthMap)
                 let height = CVPixelBufferGetHeight(depthMap)
-                CVPixelBufferLockBaseAddress(depthMap, CVPixelBufferLockFlags(readOnly))
+                CVPixelBufferLockBaseAddress(depthMap, CVPixelBufferLockFlags.readOnly)
                 guard let baseAddress = CVPixelBufferGetBaseAddress(depthMap) else {
-                    CVPixelBufferUnlockBaseAddress(depthMap, CVPixelBufferLockFlags(readOnly))
+                    CVPixelBufferUnlockBaseAddress(depthMap, CVPixelBufferLockFlags.readOnly)
                     result(nil)
                     return
                 }
@@ -312,7 +312,7 @@ extension FlutterArkitView {
                         depthArray[index] = floatPointer[index]
                     }
                 }
-                CVPixelBufferUnlockBaseAddress(depthMap, CVPixelBufferLockFlags(readOnly))
+                CVPixelBufferUnlockBaseAddress(depthMap, CVPixelBufferLockFlags.readOnly)
                 let res = FlutterStandardTypedData(float32: depthArray)
                 result(res)
                 return
