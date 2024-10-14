@@ -267,7 +267,7 @@ extension FlutterArkitView {
 
     func onCameraCapturedImage(_ result: FlutterResult) {
         if let frame = sceneView.session.currentFrame {
-            if let image = UIImage(ciImage: CIImage(cvPixelBuffer: frame.capturedImage), orientation: .left, scale: 1) {
+            if let image = UIImage(ciImage: CIImage(cvPixelBuffer: frame.capturedImage), scale: 1, orientation: .left) {
                 let res = FlutterStandardTypedData(bytes: image.pngData())
                 result(res)
             } else {
