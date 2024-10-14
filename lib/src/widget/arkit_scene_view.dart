@@ -417,6 +417,15 @@ class ARKitController {
         : null;
   }
 
+
+  Future<Matrix4?> viewMatrix() async {
+    final viewMatrix =
+        await _channel.invokeListMethod<double>('viewMatrix');
+    return viewMatrix != null
+        ? _matrixConverter.fromJson(viewMatrix)
+        : null;
+  }
+    
   /// Provides the point of view transform in world space (relative to the scene's root node)
   Future<Matrix4?> pointOfViewTransform() async {
     final pointOfViewTransform =
