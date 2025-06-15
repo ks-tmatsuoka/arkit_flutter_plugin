@@ -1,5 +1,6 @@
 import ARKit
 import Foundation
+import AVFoundation
 
 class FlutterArkitView: NSObject, FlutterPlatformView {
     let sceneView: ARSCNView
@@ -103,6 +104,8 @@ class FlutterArkitView: NSObject, FlutterPlatformView {
             onCameraImageResolution(result)
         case "snapshot":
             onGetSnapshot(result)
+        case "captureHDRImage":
+            onCaptureHDRImage(result)
         case "capturedImage":
             onCameraCapturedImage(result)
         case "cameraPosition":

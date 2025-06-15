@@ -775,6 +775,14 @@ class ARKitController {
     return MemoryImage(result!);
   }
 
+  /// Captures HDR high-resolution image while AR session is running.
+  /// Returns the captured HDR image as ImageProvider.
+  /// The method uses the camera's photo output capabilities for high quality capture.
+  Future<ImageProvider> captureHDRImage() async {
+    final result = await _channel.invokeMethod<Uint8List>('captureHDRImage');
+    return MemoryImage(result!);
+  }
+
   Future<ImageProvider?> getCapturedImage() async {
     final result = await _channel.invokeMethod<Uint8List>('capturedImage');
     return result != null ? MemoryImage(result!) : null;

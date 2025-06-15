@@ -1,5 +1,6 @@
 import ARKit
 import CoreVideo
+import AVFoundation
 
 extension FlutterArkitView {
     func onAddNode(_ arguments: [String: Any]) {
@@ -351,6 +352,71 @@ extension FlutterArkitView {
         } else {
             result(nil)
         }
+    }
+    
+    func onCaptureHDRImage(_ result: @escaping FlutterResult) {
+        // Get current AR frame
+        guard let frame = sceneView.session.currentFrame else {
+            result(FlutterError(code: "HDR_NO_FRAME", message: "No AR frame available for HDR capture", details: nil))
+            return
+        }
+        
+        // Get the camera image from AR frame
+        let cameraImage = frame.capturedImage
+        
+        // Convert to high quality image
+        let ciContext = CIContext()
+        let ciImage = CIImage(cvPixelBuffer: cameraImage)
+        
+        // Apply HDR-like processing
+        var processedImage = ciImage
+        
+        // Apply exposure adjustment for HDR-like effect
+        if let exposureFilter = CIFilter(name: "CIExposureAdjust") {
+            exposureFilter.setValue(processedImage, forKey: kCIInputImageKey)
+            exposureFilter.setValue(0.5, forKey: kCIInputEVKey) // Slight exposure boost
+            if let output = exposureFilter.outputImage {
+                processedImage = output
+            }
+        }
+        
+        // Apply highlight/shadow adjustment
+        if let highlightShadowFilter = CIFilter(name: "CIHighlightShadowAdjust") {
+            highlightShadowFilter.setValue(processedImage, forKey: kCIInputImageKey)
+            highlightShadowFilter.setValue(0.75, forKey: "inputHighlightAmount") // Reduce highlights
+            highlightShadowFilter.setValue(0.25, forKey: "inputShadowAmount") // Lift shadows
+            if let output = highlightShadowFilter.outputImage {
+                processedImage = output
+            }
+        }
+        
+        // Apply vibrance for better color
+        if let vibranceFilter = CIFilter(name: "CIVibrance") {
+            vibranceFilter.setValue(processedImage, forKey: kCIInputImageKey)
+            vibranceFilter.setValue(0.3, forKey: kCIInputAmountKey)
+            if let output = vibranceFilter.outputImage {
+                processedImage = output
+            }
+        }
+        
+        // Convert to high resolution CGImage
+        let extent = processedImage.extent
+        guard let cgImage = ciContext.createCGImage(processedImage, from: extent) else {
+            result(FlutterError(code: "HDR_PROCESSING_ERROR", message: "Failed to process HDR image", details: nil))
+            return
+        }
+        
+        // Create UIImage and convert to data
+        let uiImage = UIImage(cgImage: cgImage)
+        
+        // Use maximum quality JPEG compression for high quality
+        guard let imageData = uiImage.jpegData(compressionQuality: 1.0) else {
+            result(FlutterError(code: "HDR_DATA_ERROR", message: "Failed to convert HDR image to data", details: nil))
+            return
+        }
+        
+        let data = FlutterStandardTypedData(bytes: imageData)
+        result(data)
     }
 
     func onGetCameraPosition(_ result: FlutterResult) {

@@ -7,6 +7,7 @@ import 'package:arkit_plugin_example/load_gltf_or_glb_page.dart';
 import 'package:arkit_plugin_example/distance_tracking_page.dart';
 import 'package:arkit_plugin_example/custom_light_page.dart';
 import 'package:arkit_plugin_example/earth_page.dart';
+import 'package:arkit_plugin_example/hdr_capture_page.dart';
 import 'package:arkit_plugin_example/hello_world.dart';
 import 'package:arkit_plugin_example/image_detection_page.dart';
 import 'package:arkit_plugin_example/light_estimate_page.dart';
@@ -206,6 +207,13 @@ class MyApp extends StatelessWidget {
         Icons.camera,
         () => Navigator.of(context)
             .push<void>(MaterialPageRoute(builder: (c) => SnapshotScenePage())),
+      ),
+      Sample(
+        'HDR Capture',
+        'Capture HDR high-resolution images during AR session',
+        Icons.camera_enhance,
+        () => Navigator.of(context)
+            .push<void>(MaterialPageRoute(builder: (c) => HDRCapturePage())),
       ),
       Sample(
         'Camera properties',
