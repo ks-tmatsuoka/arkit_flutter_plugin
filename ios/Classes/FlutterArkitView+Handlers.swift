@@ -354,7 +354,7 @@ extension FlutterArkitView {
         }
     }
     
-    func onCaptureHDRImage(_ result: @escaping FlutterResult) {
+    func onCaptureHDRImage(_ result: FlutterResult) {
         // Get current AR frame
         guard let frame = sceneView.session.currentFrame else {
             result(FlutterError(code: "HDR_NO_FRAME", message: "No AR frame available for HDR capture", details: nil))
