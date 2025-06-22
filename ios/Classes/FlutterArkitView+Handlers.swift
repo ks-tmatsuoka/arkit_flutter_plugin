@@ -356,73 +356,20 @@ extension FlutterArkitView {
     }
     
     func onCaptureHDRImage(_ result: FlutterResult) {
-        // Get current AR frame
-        guard let frame = sceneView.session.currentFrame else {
-            result(FlutterError(code: "HDR_NO_FRAME", message: "No AR frame available for HDR capture", details: nil))
-            return
-        }
+        // Use independent HDR camera capture instead of AR frame
+        let hdrCapture = HDRCameraCapture()
         
-        // Get the camera image from AR frame
-        let cameraImage = frame.capturedImage
-        
-        // Create CIContext with extended working color space for HDR
-        let ciContext = CIContext(options: [
-            .workingColorSpace: CGColorSpace(name: CGColorSpace.extendedLinearSRGB)!,
-            .outputColorSpace: CGColorSpace(name: CGColorSpace.extendedLinearSRGB)!
-        ])
-        let ciImage = CIImage(cvPixelBuffer: cameraImage)
-        
-        // Get image dimensions
-        let extent = ciImage.extent
-        let width = Int(extent.width)
-        let height = Int(extent.height)
-        
-        // Create buffer for float32 RGBA data
-        let bytesPerPixel = 16 // 4 channels * 4 bytes per float
-        let bytesPerRow = width * bytesPerPixel
-        let totalBytes = height * bytesPerRow
-        
-        // Allocate buffer for HDR pixel data
-        let pixelData = UnsafeMutablePointer<Float>.allocate(capacity: width * height * 4)
-        defer { pixelData.deallocate() }
-        
-        // Create bitmap context with float components
-        let colorSpace = CGColorSpace(name: CGColorSpace.extendedLinearSRGB)!
-        let bitmapInfo = CGBitmapInfo(rawValue: CGImageAlphaInfo.premultipliedLast.rawValue | CGBitmapInfo.floatComponents.rawValue | CGBitmapInfo.byteOrder32Little.rawValue)
-        
-        guard let context = CGContext(
-            data: pixelData,
-            width: width,
-            height: height,
-            bitsPerComponent: 32,
-            bytesPerRow: bytesPerRow,
-            space: colorSpace,
-            bitmapInfo: bitmapInfo.rawValue
-        ) else {
-            result(FlutterError(code: "HDR_CONTEXT_ERROR", message: "Failed to create HDR context", details: nil))
-            return
-        }
-        
-        // Render the raw image to the float context
-        let cgImage = ciContext.createCGImage(ciImage, from: extent, format: .RGBAf, colorSpace: colorSpace)!
-        context.draw(cgImage, in: CGRect(origin: .zero, size: CGSize(width: width, height: height)))
-        
-        // Create temporary file path
-        let tempDir = NSTemporaryDirectory()
-        let fileName = "hdr_capture_\(UUID().uuidString).hdrbin"
-        let filePath = (tempDir as NSString).appendingPathComponent(fileName)
-        
-        // Use HDRBinWriter to save the file
-        do {
-            try HDRBinWriter.writeHDRImage(
-                toPath: filePath,
-                width: width,
-                height: height,
-                pixelData: pixelData
-            )
-            result(filePath)
-        } catch {
-            result(FlutterError(code: "HDR_SAVE_ERROR", message: "Failed to save HDR data: \(error.localizedDescription)", details: nil))
+        hdrCapture.captureHDRImage { captureResult in
+            switch captureResult {
+            case .success(let filePath):
+                result(filePath)
+            case .failure(let error):
+                result(FlutterError(
+                    code: "HDR_CAPTURE_ERROR", 
+                    message: "Failed to capture HDR image: \(error.localizedDescription)", 
+                    details: nil
+                ))
+            }
         }
     }
 
