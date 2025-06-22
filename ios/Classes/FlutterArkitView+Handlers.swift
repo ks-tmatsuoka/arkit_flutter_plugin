@@ -357,17 +357,35 @@ extension FlutterArkitView {
     
     func onCaptureHDRImage(_ result: FlutterResult) {
         // Use independent HDR camera capture instead of AR frame
-        let hdrCapture = HDRCameraCapture()
-        
-        hdrCapture.captureHDRImage { captureResult in
+        DispatchQueue.global(qos: .userInitiated).async {
+            let hdrCapture = HDRCameraCapture()
+            let group = DispatchGroup()
+            var captureResult: Result<String, Error>?
+            
+            group.enter()
+            hdrCapture.captureHDRImage { asyncResult in
+                captureResult = asyncResult
+                group.leave()
+            }
+            
+            group.wait()
+            
             DispatchQueue.main.async {
-                switch captureResult {
-                case .success(let filePath):
-                    result(filePath)
-                case .failure(let error):
+                if let captureResult = captureResult {
+                    switch captureResult {
+                    case .success(let filePath):
+                        result(filePath)
+                    case .failure(let error):
+                        result(FlutterError(
+                            code: "HDR_CAPTURE_ERROR", 
+                            message: "Failed to capture HDR image: \(error.localizedDescription)", 
+                            details: nil
+                        ))
+                    }
+                } else {
                     result(FlutterError(
                         code: "HDR_CAPTURE_ERROR", 
-                        message: "Failed to capture HDR image: \(error.localizedDescription)", 
+                        message: "HDR capture failed - no result", 
                         details: nil
                     ))
                 }
