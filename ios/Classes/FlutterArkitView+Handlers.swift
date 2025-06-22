@@ -411,33 +411,21 @@ extension FlutterArkitView {
         let fileName = "hdr_capture_\(UUID().uuidString).exr"
         let filePath = (tempDir as NSString).appendingPathComponent(fileName)
         
-        // Write HDR data as binary file with metadata
-        let fileData = NSMutableData()
+        // Use OpenEXRWriter to save the file
+        var error: NSError?
+        let success = OpenEXRWriter.writeHDRImage(
+            toPath: filePath,
+            width: Int32(width),
+            height: Int32(height),
+            pixelData: pixelData,
+            error: &error
+        )
         
-        // Write simple header for the HDR data format
-        var magic: UInt32 = 0x52445848 // "HDRX" in hex
-        var version: UInt32 = 1
-        var w: UInt32 = UInt32(width)
-        var h: UInt32 = UInt32(height)
-        var channels: UInt32 = 4 // RGBA
-        var bitsPerChannel: UInt32 = 32 // float32
-        
-        fileData.append(Data(bytes: &magic, count: 4))
-        fileData.append(Data(bytes: &version, count: 4))
-        fileData.append(Data(bytes: &w, count: 4))
-        fileData.append(Data(bytes: &h, count: 4))
-        fileData.append(Data(bytes: &channels, count: 4))
-        fileData.append(Data(bytes: &bitsPerChannel, count: 4))
-        
-        // Write pixel data
-        fileData.append(Data(bytes: pixelData, count: totalBytes))
-        
-        // Save to file
-        do {
-            try fileData.write(to: URL(fileURLWithPath: filePath))
+        if success {
             result(filePath)
-        } catch {
-            result(FlutterError(code: "HDR_SAVE_ERROR", message: "Failed to save HDR data: \(error.localizedDescription)", details: nil))
+        } else {
+            let errorMessage = error?.localizedDescription ?? "Unknown error"
+            result(FlutterError(code: "HDR_SAVE_ERROR", message: "Failed to save HDR data: \(errorMessage)", details: nil))
         }
     }
 
