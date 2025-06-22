@@ -86,11 +86,6 @@ class HDRCameraCapture: NSObject {
                 // Create photo output
                 let photoOutput = AVCapturePhotoOutput()
                 
-                // Configure photo output for HDR
-                if photoOutput.isHDRSupported {
-                    photoOutput.isHDREnabled = true
-                }
-                
                 // Enable high resolution capture
                 photoOutput.isHighResolutionCaptureEnabled = true
                 
@@ -164,16 +159,13 @@ class HDRCameraCapture: NSObject {
         }
         
         // Configure photo settings for HDR
-        let photoSettings = AVCapturePhotoSettings()
+        var photoSettings: AVCapturePhotoSettings
         
-        // Use HEIF format for better HDR support
+        // Use HEIF format for better HDR support if available
         if photoOutput.availablePhotoCodecTypes.contains(.hevc) {
-            photoSettings.format = [AVVideoCodecKey: AVVideoCodecType.hevc]
-        }
-        
-        // Enable HDR
-        if photoOutput.isHDRSupported {
-            photoSettings.isHDREnabled = true
+            photoSettings = AVCapturePhotoSettings(format: [AVVideoCodecKey: AVVideoCodecType.hevc])
+        } else {
+            photoSettings = AVCapturePhotoSettings()
         }
         
         // Enable high resolution
