@@ -74,8 +74,8 @@ class HDRCameraCaptureSync: NSObject {
             
             sessionSemaphore.wait()
             
-            // Wait for session to stabilize
-            Thread.sleep(forTimeInterval: 1.0)
+            // Wait for session to stabilize (longer wait since AR was paused)
+            Thread.sleep(forTimeInterval: 2.0)
             
             // Capture image synchronously
             guard let videoConnection = stillImageOutput.connection(with: .video) else {

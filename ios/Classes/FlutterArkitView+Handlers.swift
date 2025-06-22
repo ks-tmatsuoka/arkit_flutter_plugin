@@ -356,11 +356,32 @@ extension FlutterArkitView {
     }
     
     func onCaptureHDRImage(_ result: FlutterResult) {
+        // Save current AR session state
+        let wasRunning = sceneView.session.currentFrame != nil
+        
+        // Temporarily pause AR session to avoid camera conflicts
+        if wasRunning {
+            sceneView.session.pause()
+            // Wait a moment for session to fully pause
+            Thread.sleep(forTimeInterval: 0.5)
+        }
+        
         // Use synchronous independent HDR camera capture
         do {
             let filePath = try HDRCameraCaptureSync.captureHDRImageSync()
+            
+            // Resume AR session if it was running
+            if wasRunning {
+                sceneView.session.run(sceneView.session.configuration ?? ARWorldTrackingConfiguration())
+            }
+            
             result(filePath)
         } catch {
+            // Resume AR session even if HDR capture failed
+            if wasRunning {
+                sceneView.session.run(sceneView.session.configuration ?? ARWorldTrackingConfiguration())
+            }
+            
             result(FlutterError(
                 code: "HDR_CAPTURE_ERROR",
                 message: "Failed to capture HDR image: \(error.localizedDescription)",
