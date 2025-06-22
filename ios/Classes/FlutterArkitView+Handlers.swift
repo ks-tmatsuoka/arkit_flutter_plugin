@@ -1,6 +1,7 @@
 import ARKit
 import CoreVideo
 import AVFoundation
+import Foundation
 
 extension FlutterArkitView {
     func onAddNode(_ arguments: [String: Any]) {
@@ -412,20 +413,16 @@ extension FlutterArkitView {
         let filePath = (tempDir as NSString).appendingPathComponent(fileName)
         
         // Use OpenEXRWriter to save the file
-        var error: NSError?
-        let success = OpenEXRWriter.writeHDRImage(
-            toPath: filePath,
-            width: Int32(width),
-            height: Int32(height),
-            pixelData: pixelData,
-            error: &error
-        )
-        
-        if success {
+        do {
+            try OpenEXRWriter.writeHDRImage(
+                toPath: filePath,
+                width: width,
+                height: height,
+                pixelData: pixelData
+            )
             result(filePath)
-        } else {
-            let errorMessage = error?.localizedDescription ?? "Unknown error"
-            result(FlutterError(code: "HDR_SAVE_ERROR", message: "Failed to save HDR data: \(errorMessage)", details: nil))
+        } catch {
+            result(FlutterError(code: "HDR_SAVE_ERROR", message: "Failed to save HDR data: \(error.localizedDescription)", details: nil))
         }
     }
 
