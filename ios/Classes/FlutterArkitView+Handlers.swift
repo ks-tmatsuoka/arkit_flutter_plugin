@@ -356,46 +356,11 @@ extension FlutterArkitView {
     }
     
     func onCaptureHDRImage(_ result: FlutterResult) {
-        // Use independent HDR camera capture with semaphore for synchronous waiting
-        let hdrCapture = HDRCameraCapture()
-        let semaphore = DispatchSemaphore(value: 0)
-        var captureResult: Result<String, Error>?
-        
-        // Start capture in background
-        DispatchQueue.global(qos: .userInitiated).async {
-            hdrCapture.captureHDRImage { asyncResult in
-                captureResult = asyncResult
-                semaphore.signal()
-            }
-        }
-        
-        // Wait for completion with timeout (30 seconds)
-        let timeout = DispatchTime.now() + .seconds(30)
-        let waitResult = semaphore.wait(timeout: timeout)
-        
-        // Return result synchronously
-        if waitResult == .timedOut {
-            result(FlutterError(
-                code: "HDR_TIMEOUT",
-                message: "HDR capture timed out",
-                details: nil
-            ))
-            return
-        }
-        
-        guard let captureResult = captureResult else {
-            result(FlutterError(
-                code: "HDR_NO_RESULT",
-                message: "No HDR capture result",
-                details: nil
-            ))
-            return
-        }
-        
-        switch captureResult {
-        case .success(let filePath):
+        // Use synchronous independent HDR camera capture
+        do {
+            let filePath = try HDRCameraCaptureSync.captureHDRImageSync()
             result(filePath)
-        case .failure(let error):
+        } catch {
             result(FlutterError(
                 code: "HDR_CAPTURE_ERROR",
                 message: "Failed to capture HDR image: \(error.localizedDescription)",
