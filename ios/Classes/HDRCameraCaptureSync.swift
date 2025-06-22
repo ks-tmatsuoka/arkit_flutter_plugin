@@ -63,19 +63,29 @@ class HDRCameraCaptureSync: NSObject {
                 throw HDRCaptureError.outputNotSupported
             }
             
-            // Start session
-            session.startRunning()
+            // Start session on background thread
+            let sessionQueue = DispatchQueue(label: "com.arkitflutter.camera.session", qos: .userInitiated)
+            let sessionSemaphore = DispatchSemaphore(value: 0)
+            
+            sessionQueue.async {
+                session.startRunning()
+                sessionSemaphore.signal()
+            }
+            
+            sessionSemaphore.wait()
             
             // Wait for session to stabilize
             Thread.sleep(forTimeInterval: 1.0)
             
             // Capture image synchronously
             guard let videoConnection = stillImageOutput.connection(with: .video) else {
-                session.stopRunning()
+                sessionQueue.async {
+                    session.stopRunning()
+                }
                 throw HDRCaptureError.outputNotReady
             }
             
-            let semaphore = DispatchSemaphore(value: 0)
+            let captureSemaphore = DispatchSemaphore(value: 0)
             var capturedImageData: Data?
             var captureError: Error?
             
@@ -85,11 +95,18 @@ class HDRCameraCaptureSync: NSObject {
                 } else if let sampleBuffer = sampleBuffer {
                     capturedImageData = AVCaptureStillImageOutput.jpegStillImageNSDataRepresentation(sampleBuffer)
                 }
-                semaphore.signal()
+                captureSemaphore.signal()
             }
             
-            semaphore.wait()
-            session.stopRunning()
+            captureSemaphore.wait()
+            
+            // Stop session on background thread
+            let stopSemaphore = DispatchSemaphore(value: 0)
+            sessionQueue.async {
+                session.stopRunning()
+                stopSemaphore.signal()
+            }
+            stopSemaphore.wait()
             
             if let error = captureError {
                 throw error
@@ -103,7 +120,10 @@ class HDRCameraCaptureSync: NSObject {
             return try processImageDataToHDRBin(imageData)
             
         } catch {
-            session.stopRunning()
+            let sessionQueue = DispatchQueue(label: "com.arkitflutter.camera.session", qos: .userInitiated)
+            sessionQueue.async {
+                session.stopRunning()
+            }
             throw error
         }
     }
