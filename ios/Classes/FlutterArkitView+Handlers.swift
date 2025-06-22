@@ -364,59 +364,81 @@ extension FlutterArkitView {
         // Get the camera image from AR frame
         let cameraImage = frame.capturedImage
         
-        // Convert to high quality image
-        let ciContext = CIContext()
+        // Create CIContext with extended working color space for HDR
+        let ciContext = CIContext(options: [
+            .workingColorSpace: CGColorSpace(name: CGColorSpace.extendedLinearSRGB)!,
+            .outputColorSpace: CGColorSpace(name: CGColorSpace.extendedLinearSRGB)!
+        ])
         let ciImage = CIImage(cvPixelBuffer: cameraImage)
         
-        // Apply HDR-like processing
-        var processedImage = ciImage
+        // Get image dimensions
+        let extent = ciImage.extent
+        let width = Int(extent.width)
+        let height = Int(extent.height)
         
-        // Apply exposure adjustment for HDR-like effect
-        if let exposureFilter = CIFilter(name: "CIExposureAdjust") {
-            exposureFilter.setValue(processedImage, forKey: kCIInputImageKey)
-            exposureFilter.setValue(0.5, forKey: kCIInputEVKey) // Slight exposure boost
-            if let output = exposureFilter.outputImage {
-                processedImage = output
-            }
-        }
+        // Create buffer for float32 RGBA data
+        let bytesPerPixel = 16 // 4 channels * 4 bytes per float
+        let bytesPerRow = width * bytesPerPixel
+        let totalBytes = height * bytesPerRow
         
-        // Apply highlight/shadow adjustment
-        if let highlightShadowFilter = CIFilter(name: "CIHighlightShadowAdjust") {
-            highlightShadowFilter.setValue(processedImage, forKey: kCIInputImageKey)
-            highlightShadowFilter.setValue(0.75, forKey: "inputHighlightAmount") // Reduce highlights
-            highlightShadowFilter.setValue(0.25, forKey: "inputShadowAmount") // Lift shadows
-            if let output = highlightShadowFilter.outputImage {
-                processedImage = output
-            }
-        }
+        // Allocate buffer for HDR pixel data
+        let pixelData = UnsafeMutablePointer<Float>.allocate(capacity: width * height * 4)
+        defer { pixelData.deallocate() }
         
-        // Apply vibrance for better color
-        if let vibranceFilter = CIFilter(name: "CIVibrance") {
-            vibranceFilter.setValue(processedImage, forKey: kCIInputImageKey)
-            vibranceFilter.setValue(0.3, forKey: kCIInputAmountKey)
-            if let output = vibranceFilter.outputImage {
-                processedImage = output
-            }
-        }
+        // Create bitmap context with float components
+        let colorSpace = CGColorSpace(name: CGColorSpace.extendedLinearSRGB)!
+        let bitmapInfo = CGBitmapInfo(rawValue: CGImageAlphaInfo.premultipliedLast.rawValue | CGBitmapInfo.floatComponents.rawValue | CGBitmapInfo.byteOrder32Little.rawValue)
         
-        // Convert to high resolution CGImage
-        let extent = processedImage.extent
-        guard let cgImage = ciContext.createCGImage(processedImage, from: extent) else {
-            result(FlutterError(code: "HDR_PROCESSING_ERROR", message: "Failed to process HDR image", details: nil))
+        guard let context = CGContext(
+            data: pixelData,
+            width: width,
+            height: height,
+            bitsPerComponent: 32,
+            bytesPerRow: bytesPerRow,
+            space: colorSpace,
+            bitmapInfo: bitmapInfo.rawValue
+        ) else {
+            result(FlutterError(code: "HDR_CONTEXT_ERROR", message: "Failed to create HDR context", details: nil))
             return
         }
         
-        // Create UIImage and convert to data
-        let uiImage = UIImage(cgImage: cgImage)
+        // Render the raw image to the float context
+        let cgImage = ciContext.createCGImage(ciImage, from: extent, format: .RGBAf, colorSpace: colorSpace)!
+        context.draw(cgImage, in: CGRect(origin: .zero, size: CGSize(width: width, height: height)))
         
-        // Use maximum quality JPEG compression for high quality
-        guard let imageData = uiImage.jpegData(compressionQuality: 1.0) else {
-            result(FlutterError(code: "HDR_DATA_ERROR", message: "Failed to convert HDR image to data", details: nil))
-            return
+        // Create temporary file path
+        let tempDir = NSTemporaryDirectory()
+        let fileName = "hdr_capture_\(UUID().uuidString).exr"
+        let filePath = (tempDir as NSString).appendingPathComponent(fileName)
+        
+        // Write HDR data as binary file with metadata
+        let fileData = NSMutableData()
+        
+        // Write simple header for the HDR data format
+        var magic: UInt32 = 0x52445848 // "HDRX" in hex
+        var version: UInt32 = 1
+        var w: UInt32 = UInt32(width)
+        var h: UInt32 = UInt32(height)
+        var channels: UInt32 = 4 // RGBA
+        var bitsPerChannel: UInt32 = 32 // float32
+        
+        fileData.append(Data(bytes: &magic, count: 4))
+        fileData.append(Data(bytes: &version, count: 4))
+        fileData.append(Data(bytes: &w, count: 4))
+        fileData.append(Data(bytes: &h, count: 4))
+        fileData.append(Data(bytes: &channels, count: 4))
+        fileData.append(Data(bytes: &bitsPerChannel, count: 4))
+        
+        // Write pixel data
+        fileData.append(Data(bytes: pixelData, count: totalBytes))
+        
+        // Save to file
+        do {
+            try fileData.write(to: URL(fileURLWithPath: filePath))
+            result(filePath)
+        } catch {
+            result(FlutterError(code: "HDR_SAVE_ERROR", message: "Failed to save HDR data: \(error.localizedDescription)", details: nil))
         }
-        
-        let data = FlutterStandardTypedData(bytes: imageData)
-        result(data)
     }
 
     func onGetCameraPosition(_ result: FlutterResult) {

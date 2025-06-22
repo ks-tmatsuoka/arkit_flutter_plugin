@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:arkit_plugin/arkit_plugin.dart';
 import 'package:arkit_plugin_example/util/ar_helper.dart';
 import 'package:flutter/material.dart';
@@ -33,12 +35,12 @@ class _HDRCapturePageState extends State<HDRCapturePage> {
           });
           
           try {
-            final image = await arkitController.captureHDRImage();
+            final filePath = await arkitController.captureHDRImage();
             await Navigator.push(
               context,
               MaterialPageRoute(
                 builder: (context) => HDRImagePreview(
-                  imageProvider: image,
+                  filePath: filePath,
                 ),
               ),
             );
@@ -67,16 +69,16 @@ class _HDRCapturePageState extends State<HDRCapturePage> {
 class HDRImagePreview extends StatelessWidget {
   const HDRImagePreview({
     Key? key,
-    required this.imageProvider,
+    required this.filePath,
   }) : super(key: key);
 
-  final ImageProvider imageProvider;
+  final String filePath;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('HDR Image Preview'),
+        title: const Text('HDR Image'),
         actions: [
           IconButton(
             icon: Icon(Icons.info),
@@ -86,11 +88,12 @@ class HDRImagePreview extends StatelessWidget {
                 builder: (context) => AlertDialog(
                   title: Text('HDR Image Info'),
                   content: Text(
-                    'This image was captured using HDR processing:\n\n'
-                    '• Enhanced dynamic range\n'
-                    '• Improved highlight/shadow balance\n'
-                    '• Increased color vibrance\n'
-                    '• Maximum quality JPEG compression'
+                    'HDR image saved as OpenEXR format:\n\n'
+                    '• File path: $filePath\n'
+                    '• Format: Binary HDR data\n'
+                    '• Color space: Extended linear sRGB\n'
+                    '• Channels: RGBA (float32)\n'
+                    '• No processing applied (raw data)'
                   ),
                   actions: [
                     TextButton(
@@ -104,11 +107,31 @@ class HDRImagePreview extends StatelessWidget {
           ),
         ],
       ),
-      body: Stack(
-        fit: StackFit.expand,
-        children: [
-          Image(image: imageProvider, fit: BoxFit.contain),
-        ],
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.image, size: 100, color: Colors.grey),
+            SizedBox(height: 20),
+            Text('HDR Image Saved', style: Theme.of(context).textTheme.titleLarge),
+            SizedBox(height: 10),
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: 20),
+              child: Text(
+                filePath,
+                style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                textAlign: TextAlign.center,
+              ),
+            ),
+            SizedBox(height: 20),
+            Text(
+              'OpenEXR format file cannot be displayed directly.\n'
+              'Use external tools to view or convert the HDR data.',
+              style: TextStyle(fontSize: 14, color: Colors.grey[700]),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
       ),
     );
   }
