@@ -64,14 +64,14 @@ class HDRCaptureWorker {
         let waitResult = semaphore.wait(timeout: timeout)
         
         if waitResult == .timedOut {
-            return .failure(HDRCaptureError.timeout)
+            return .failure(HDRCaptureWorkerError.timeout)
         }
         
-        return captureResult ?? .failure(HDRCaptureError.noResult)
+        return captureResult ?? .failure(HDRCaptureWorkerError.noResult)
     }
 }
 
-enum HDRCaptureError: LocalizedError {
+enum HDRCaptureWorkerError: LocalizedError {
     case timeout
     case noResult
     
