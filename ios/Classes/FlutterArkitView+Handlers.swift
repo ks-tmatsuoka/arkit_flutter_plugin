@@ -409,12 +409,12 @@ extension FlutterArkitView {
         
         // Create temporary file path
         let tempDir = NSTemporaryDirectory()
-        let fileName = "hdr_capture_\(UUID().uuidString).exr"
+        let fileName = "hdr_capture_\(UUID().uuidString).hdrbin"
         let filePath = (tempDir as NSString).appendingPathComponent(fileName)
         
-        // Use OpenEXRWriter to save the file
+        // Use HDRBinWriter to save the file
         do {
-            try OpenEXRWriter.writeHDRImage(
+            try HDRBinWriter.writeHDRImage(
                 toPath: filePath,
                 width: width,
                 height: height,
