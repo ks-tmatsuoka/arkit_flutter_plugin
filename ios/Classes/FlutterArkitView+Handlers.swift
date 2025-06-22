@@ -373,36 +373,34 @@ extension FlutterArkitView {
         let timeout = DispatchTime.now() + .seconds(30)
         let waitResult = semaphore.wait(timeout: timeout)
         
-        // Return result on main thread
-        DispatchQueue.main.async {
-            if waitResult == .timedOut {
-                result(FlutterError(
-                    code: "HDR_TIMEOUT",
-                    message: "HDR capture timed out",
-                    details: nil
-                ))
-                return
-            }
-            
-            guard let captureResult = captureResult else {
-                result(FlutterError(
-                    code: "HDR_NO_RESULT",
-                    message: "No HDR capture result",
-                    details: nil
-                ))
-                return
-            }
-            
-            switch captureResult {
-            case .success(let filePath):
-                result(filePath)
-            case .failure(let error):
-                result(FlutterError(
-                    code: "HDR_CAPTURE_ERROR",
-                    message: "Failed to capture HDR image: \(error.localizedDescription)",
-                    details: nil
-                ))
-            }
+        // Return result synchronously
+        if waitResult == .timedOut {
+            result(FlutterError(
+                code: "HDR_TIMEOUT",
+                message: "HDR capture timed out",
+                details: nil
+            ))
+            return
+        }
+        
+        guard let captureResult = captureResult else {
+            result(FlutterError(
+                code: "HDR_NO_RESULT",
+                message: "No HDR capture result",
+                details: nil
+            ))
+            return
+        }
+        
+        switch captureResult {
+        case .success(let filePath):
+            result(filePath)
+        case .failure(let error):
+            result(FlutterError(
+                code: "HDR_CAPTURE_ERROR",
+                message: "Failed to capture HDR image: \(error.localizedDescription)",
+                details: nil
+            ))
         }
     }
 
