@@ -355,7 +355,7 @@ extension FlutterArkitView {
         }
     }
     
-    func onCaptureHDRImage(_ result: FlutterResult) {
+    func onCaptureHDRImage(_ result: @escaping FlutterResult) {
         // Use independent HDR camera capture instead of AR frame
         let hdrCapture = HDRCameraCapture()
         
