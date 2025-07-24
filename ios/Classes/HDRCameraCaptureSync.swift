@@ -7,12 +7,8 @@ class HDRCameraCaptureSync: NSObject {
     static func captureHDRImageSync() throws -> String {
         let session = AVCaptureSession()
         
-        // Set highest quality preset for maximum resolution
-        if session.canSetSessionPreset(.photo) {
-            session.sessionPreset = .photo
-        } else if session.canSetSessionPreset(.high) {
-            session.sessionPreset = .high
-        }
+        // Don't set preset yet - we'll configure the format directly
+        session.beginConfiguration()
         
         // Get the best camera device
         guard let device = getBestCameraDevice() else {
@@ -20,8 +16,16 @@ class HDRCameraCaptureSync: NSObject {
         }
         
         do {
-            // Configure camera for HDR
+            // Configure camera for HDR with optimal format
             try device.lockForConfiguration()
+            
+            // Select the best format with HDR support and highest resolution
+            if let bestFormat = selectBestHDRFormat(for: device) {
+                device.activeFormat = bestFormat
+                
+                // Configure frame rate for the selected format
+                configureFrameRate(for: device, format: bestFormat)
+            }
             
             // Enable HDR mode if available
             if device.activeFormat.isVideoHDRSupported {
@@ -62,6 +66,9 @@ class HDRCameraCaptureSync: NSObject {
             } else {
                 throw HDRCaptureError.outputNotSupported
             }
+            
+            // Commit configuration
+            session.commitConfiguration()
             
             // Start session on background thread
             let sessionQueue = DispatchQueue(label: "com.arkitflutter.camera.session", qos: .userInitiated)
@@ -211,5 +218,77 @@ class HDRCameraCaptureSync: NSObject {
         )
         
         return filePath
+    }
+    
+    // Select the best format with HDR support, prioritizing resolution over frame rate
+    private static func selectBestHDRFormat(for device: AVCaptureDevice) -> AVCaptureDevice.Format? {
+        let formats = device.formats
+        
+        // Sort formats by criteria:
+        // 1. HDR support (HDR formats first)
+        // 2. Resolution (higher resolution first)
+        // 3. Frame rate (we don't prioritize high frame rate)
+        let sortedFormats = formats.sorted { format1, format2 in
+            // Check HDR support
+            let hdr1 = format1.isVideoHDRSupported
+            let hdr2 = format2.isVideoHDRSupported
+            
+            if hdr1 != hdr2 {
+                return hdr1 // HDR formats come first
+            }
+            
+            // Compare resolutions
+            let dimensions1 = CMVideoFormatDescriptionGetDimensions(format1.formatDescription)
+            let dimensions2 = CMVideoFormatDescriptionGetDimensions(format2.formatDescription)
+            
+            let pixels1 = Int(dimensions1.width) * Int(dimensions1.height)
+            let pixels2 = Int(dimensions2.width) * Int(dimensions2.height)
+            
+            if pixels1 != pixels2 {
+                return pixels1 > pixels2 // Higher resolution first
+            }
+            
+            // If same resolution, prefer formats with 10-bit or higher color depth
+            let mediaSubType1 = CMFormatDescriptionGetMediaSubType(format1.formatDescription)
+            let mediaSubType2 = CMFormatDescriptionGetMediaSubType(format2.formatDescription)
+            
+            // Check for 10-bit formats (420v, x420, etc.)
+            let is10Bit1 = mediaSubType1 == kCVPixelFormatType_420YpCbCr10BiPlanarVideoRange ||
+                           mediaSubType1 == kCVPixelFormatType_420YpCbCr10BiPlanarFullRange
+            let is10Bit2 = mediaSubType2 == kCVPixelFormatType_420YpCbCr10BiPlanarVideoRange ||
+                           mediaSubType2 == kCVPixelFormatType_420YpCbCr10BiPlanarFullRange
+            
+            if is10Bit1 != is10Bit2 {
+                return is10Bit1 // 10-bit formats come first
+            }
+            
+            return false // Otherwise keep original order
+        }
+        
+        // Return the best format (first in sorted list)
+        return sortedFormats.first
+    }
+    
+    // Configure frame rate for the selected format
+    private static func configureFrameRate(for device: AVCaptureDevice, format: AVCaptureDevice.Format) {
+        // Find the minimum frame rate range that includes our target
+        // We prefer lower frame rates for better quality at same resolution
+        let targetFrameRate: Double = 30.0
+        
+        for range in format.videoSupportedFrameRateRanges {
+            if range.minFrameRate <= targetFrameRate && targetFrameRate <= range.maxFrameRate {
+                // Set frame rate to target or minimum available
+                let frameRate = min(targetFrameRate, range.maxFrameRate)
+                let frameDuration = CMTime(value: 1, timescale: CMTimeScale(frameRate))
+                
+                do {
+                    device.activeVideoMinFrameDuration = frameDuration
+                    device.activeVideoMaxFrameDuration = frameDuration
+                } catch {
+                    print("Failed to set frame rate: \(error)")
+                }
+                break
+            }
+        }
     }
 }
