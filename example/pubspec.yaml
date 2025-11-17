@@ -1,6 +1,7 @@
 name: arkit_plugin_example
 description: Demonstrates how to use the arkit_plugin plugin.
 publish_to: 'none'
+version: 1.2.1+1
 
 environment:
   sdk: '>=3.3.0 <4.0.0'
