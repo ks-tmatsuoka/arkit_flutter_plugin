@@ -17,10 +17,18 @@ extension FlutterArkitView {
         initalizeGesutreRecognizers(arguments)
 
         sceneView.debugOptions = parseDebugOptions(arguments)
-        configuration = parseConfiguration(arguments)
-        if configuration != nil {
-            sceneView.session.run(configuration!)
+        Task {
+            configuration = parseConfiguration(arguments)
+            DispatchQueue.main.async {
+                if let config = self.configuration {
+                    self.sceneView.session.run(config)
+                    self.sendToFlutter("onInitialized", arguments: nil)
+                } else {
+                    logPluginError("Failed to create ARConfiguration", toChannel: self.channel)
+                }
+            }
         }
+        
     }
 
     func parseDebugOptions(_ arguments: [String: Any]) -> SCNDebugOptions {
@@ -60,6 +68,12 @@ extension FlutterArkitView {
         case 3:
             if #available(iOS 13.0, *) {
                 configuration = createBodyTrackingConfiguration(arguments)
+            } else {
+                logPluginError("configuration is not supported on this device", toChannel: channel)
+            }
+        case 4:
+            if #available(iOS 14.0, *) {
+                configuration = createDepthTrackingConfiguration(arguments)
             } else {
                 logPluginError("configuration is not supported on this device", toChannel: channel)
             }

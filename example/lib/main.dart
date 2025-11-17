@@ -18,6 +18,7 @@ import 'package:arkit_plugin_example/network_image_detection.dart';
 import 'package:arkit_plugin_example/occlusion_page.dart';
 import 'package:arkit_plugin_example/physics_page.dart';
 import 'package:arkit_plugin_example/plane_detection_page.dart';
+import 'package:arkit_plugin_example/snapshot_depth_scene.dart';
 import 'package:arkit_plugin_example/snapshot_scene.dart';
 import 'package:arkit_plugin_example/tap_page.dart';
 import 'package:arkit_plugin_example/face_detection_page.dart';
@@ -30,6 +31,8 @@ import 'package:flutter/material.dart';
 void main() => runApp(MaterialApp(home: MyApp()));
 
 class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     final samples = [
@@ -222,6 +225,13 @@ class MyApp extends StatelessWidget {
         () => Navigator.of(context).push<void>(
             MaterialPageRoute(builder: (c) => CameraPropertiesPage())),
       ),
+      Sample(
+        'Depth Scene Snapshot',
+        'Make a photo of the depth scene using LiDAR',
+        Icons.camera,
+        () => Navigator.of(context).push<void>(
+            MaterialPageRoute(builder: (c) => SnapshotDepthScenePage())),
+      ),
     ];
 
     return Scaffold(
@@ -237,8 +247,8 @@ class MyApp extends StatelessWidget {
 class SampleItem extends StatelessWidget {
   const SampleItem({
     required this.item,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
   final Sample item;
 
   @override

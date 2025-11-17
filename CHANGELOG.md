@@ -1,5 +1,29 @@
 # Changelog
 
+## 1.2.1
+
+* Enhance ARKit initialization by adding onInitialized callback (by @vlad0209)
+* Set correct constraints for vector_math
+
+## 1.2.0
+
+* Prevent UI freeze by loading AR session configuration asynchronously (by @vlad0209)
+* **BREAKING CHANGE** Drop iOS 12 support
+* Fix analyzer warnings
+
+## 1.1.3
+
+* Update onGetNodeBoundingBox to use the actual node instead of a new geometry. This allows you to get the bounding box of a loaded model (by @jeremyfb)
+* Update handleTap to find if the tapped node is a child of an SCNReferenceNode and return the name of that instead. This fixes a bug where the names of inner geometries were being returned. (by @jeremyfb)
+
+## 1.1.2
+
+* Allow to capture snapshot of depth scene using LiDAR to get a depth image and associated information (by @biklas7)
+
+## 1.1.1
+
+* Update README (by @biklas7)
+
 ## 1.1.0
 
 * BREAKING CHANGE! Drop iOS 11 support.

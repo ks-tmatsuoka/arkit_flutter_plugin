@@ -108,6 +108,8 @@ class FlutterArkitView: NSObject, FlutterPlatformView {
             onCaptureHDRImage(result)
         case "capturedImage":
             onCameraCapturedImage(result)
+        case "snapshotWithDepthData":
+            onGetSnapshotWithDepthData(result)
         case "cameraPosition":
             onGetCameraPosition(result)
         case "depthResolution":

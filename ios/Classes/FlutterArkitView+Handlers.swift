@@ -56,16 +56,17 @@ extension FlutterArkitView {
     }
 
     func onGetNodeBoundingBox(_ arguments: [String: Any], _ result: FlutterResult) {
-        guard let geometryArguments = arguments["geometry"] as? [String: Any] else {
-            logPluginError("geometryArguments deserialization failed", toChannel: channel)
-            result(nil)
+        guard let name = arguments["name"] as? String
+        else {
+            logPluginError("name not found: failed", toChannel: channel)
             return
         }
-        let geometry = createGeometry(geometryArguments, withDevice: sceneView.device)
-        let node = createNode(geometry, fromDict: arguments, forDevice: sceneView.device, channel: channel)
-
-        let resArray = [serializeVector(node.boundingBox.min), serializeVector(node.boundingBox.max)]
-        result(resArray)
+        if let node = sceneView.scene.rootNode.childNode(withName: name, recursively: true) {
+            let resArray = [serializeVector(node.boundingBox.min), serializeVector(node.boundingBox.max)]
+            result(resArray)
+        } else {
+            logPluginError("node \(name) not found", toChannel: channel)
+        }
     }
 
     func onTransformChanged(_ arguments: [String: Any]) {
@@ -78,7 +79,7 @@ extension FlutterArkitView {
         if let node = sceneView.scene.rootNode.childNode(withName: name, recursively: true) {
             node.transform = deserializeMatrix4(params)
         } else {
-            logPluginError("node not found", toChannel: channel)
+            logPluginError("node \(name) not found", toChannel: channel)
         }
     }
 
@@ -368,6 +369,55 @@ extension FlutterArkitView {
                 message: "Failed to capture HDR image: \(error.localizedDescription)",
                 details: nil
             ))
+        }
+    }
+
+    func onGetSnapshotWithDepthData(_ result: FlutterResult) {
+        if #available(iOS 14.0, *) {
+            if let currentFrame = sceneView.session.currentFrame, let depthData = currentFrame.sceneDepth {
+                let originalImage = currentFrame.capturedImage
+                let ciImage = CIImage(cvPixelBuffer: originalImage)
+                let ciContext = CIContext()
+                let cgImage = ciContext.createCGImage(ciImage, from: ciImage.extent)!
+                let image = UIImage(cgImage: cgImage)
+                let convertedImage = image.jpegData(compressionQuality: 1)!
+                let imageData = FlutterStandardTypedData(bytes: convertedImage)
+
+                let depthDataMap = depthData.depthMap
+
+                CVPixelBufferLockBaseAddress(depthDataMap, CVPixelBufferLockFlags(rawValue: 0))
+
+                let depthWidth = CVPixelBufferGetWidth(depthDataMap)
+                let depthHeight = CVPixelBufferGetHeight(depthDataMap)
+
+                let floatBuffer = unsafeBitCast(CVPixelBufferGetBaseAddress(depthDataMap), to: UnsafeMutablePointer<Float32>.self)
+
+                CVPixelBufferUnlockBaseAddress(depthDataMap, CVPixelBufferLockFlags(rawValue: 0))
+
+                let intrinsics = currentFrame.camera.intrinsics
+                let intrinsicsString = String(
+                    format: "%f,%f,%f-%f,%f,%f-%f,%f,%f",
+                    intrinsics.columns.0.x, intrinsics.columns.0.y, intrinsics.columns.0.z,
+                    intrinsics.columns.1.x, intrinsics.columns.1.y, intrinsics.columns.1.z,
+                    intrinsics.columns.2.x, intrinsics.columns.2.y, intrinsics.columns.2.z
+                )
+
+                let depthArray = Array(UnsafeBufferPointer(start: floatBuffer, count: depthWidth * depthHeight)).map { $0.isNaN ? -1 : $0 }
+
+                let data: [String: Any] = [
+                    "image": imageData,
+                    "intrinsics": intrinsicsString,
+                    "depthWidth": depthWidth,
+                    "depthHeight": depthHeight,
+                    "depthMap": depthArray,
+                ]
+
+                result(data)
+            } else {
+                result(nil)
+            }
+        } else {
+            result(nil)
         }
     }
 
