@@ -777,7 +777,7 @@ class ARKitController {
   Future<Size?> getCameraImageResolution() async {
     final result = await _channel.invokeListMethod('cameraImageResolution');
     if (result != null) {
-        final vector2 = _vector2Converter.fromJson(result!);
+        final vector2 = _vector2Converter.fromJson(result);
         return Size(vector2.x, vector2.y);
     } else {
         return null;
@@ -806,13 +806,13 @@ class ARKitController {
 
   Future<ImageProvider?> getCapturedImage() async {
     final result = await _channel.invokeMethod<Uint8List>('capturedImage');
-    return result != null ? MemoryImage(result!) : null;
+    return result != null ? MemoryImage(result) : null;
   }
 
   Future<Size?> getDepthResolution() async {
     final result = await _channel.invokeListMethod('depthResolution');
     if (result != null) {
-        final vector2 = _vector2Converter.fromJson(result!);
+        final vector2 = _vector2Converter.fromJson(result);
         return Size(vector2.x, vector2.y);
     } else {
         return null;
@@ -858,7 +858,7 @@ class ARKitController {
   Future<Size?> getViewport() async {
     final result = await _channel.invokeListMethod('viewport');
     if (result != null) {
-        final vector2 = _vector2Converter.fromJson(result!);
+        final vector2 = _vector2Converter.fromJson(result);
         return Size(vector2.x, vector2.y);
     } else {
         return null;

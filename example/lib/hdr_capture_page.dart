@@ -1,12 +1,12 @@
-import 'dart:io';
-
 import 'package:arkit_plugin/arkit_plugin.dart';
 import 'package:arkit_plugin_example/util/ar_helper.dart';
 import 'package:flutter/material.dart';
 
 class HDRCapturePage extends StatefulWidget {
+  const HDRCapturePage({super.key});
+
   @override
-  _HDRCapturePageState createState() => _HDRCapturePageState();
+  State<HDRCapturePage> createState() => _HDRCapturePageState();
 }
 
 class _HDRCapturePageState extends State<HDRCapturePage> {
@@ -26,16 +26,14 @@ class _HDRCapturePageState extends State<HDRCapturePage> {
       ),
       floatingActionButton: FloatingActionButton(
         backgroundColor: isCapturing ? Colors.grey : Colors.blue,
-        child: isCapturing 
-            ? CircularProgressIndicator(color: Colors.white)
-            : Icon(Icons.camera_enhance),
         onPressed: isCapturing ? null : () async {
           setState(() {
             isCapturing = true;
           });
-          
+
           try {
             final filePath = await arkitController.captureHDRImage();
+            if (!mounted) return;
             await Navigator.push(
               context,
               MaterialPageRoute(
@@ -45,20 +43,24 @@ class _HDRCapturePageState extends State<HDRCapturePage> {
               ),
             );
           } catch (e) {
-            print('HDR Capture Error: $e');
+            debugPrint('HDR Capture Error: $e');
+            if (!mounted) return;
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text('HDR capture failed: $e')),
             );
           } finally {
-            setState(() {
-              isCapturing = false;
-            });
+            if (mounted) {
+              setState(() {
+                isCapturing = false;
+              });
+            }
           }
         },
+        child: isCapturing
+            ? const CircularProgressIndicator(color: Colors.white)
+            : const Icon(Icons.camera_enhance),
       ),
-      body: Container(
-        child: ARKitSceneView(onARKitViewCreated: onARKitViewCreated),
-      ));
+      body: ARKitSceneView(onARKitViewCreated: onARKitViewCreated));
 
   void onARKitViewCreated(ARKitController arkitController) {
     this.arkitController = arkitController;
@@ -68,9 +70,9 @@ class _HDRCapturePageState extends State<HDRCapturePage> {
 
 class HDRImagePreview extends StatelessWidget {
   const HDRImagePreview({
-    Key? key,
+    super.key,
     required this.filePath,
-  }) : super(key: key);
+  });
 
   final String filePath;
 
@@ -81,12 +83,12 @@ class HDRImagePreview extends StatelessWidget {
         title: const Text('HDR Image'),
         actions: [
           IconButton(
-            icon: Icon(Icons.info),
+            icon: const Icon(Icons.info),
             onPressed: () {
               showDialog(
                 context: context,
                 builder: (context) => AlertDialog(
-                  title: Text('HDR Image Info'),
+                  title: const Text('HDR Image Info'),
                   content: Text(
                     'HDR image saved as OpenEXR format:\n\n'
                     '• File path: $filePath\n'
@@ -98,7 +100,7 @@ class HDRImagePreview extends StatelessWidget {
                   actions: [
                     TextButton(
                       onPressed: () => Navigator.pop(context),
-                      child: Text('OK'),
+                      child: const Text('OK'),
                     ),
                   ],
                 ),
@@ -111,19 +113,19 @@ class HDRImagePreview extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.image, size: 100, color: Colors.grey),
-            SizedBox(height: 20),
+            const Icon(Icons.image, size: 100, color: Colors.grey),
+            const SizedBox(height: 20),
             Text('HDR Image Saved', style: Theme.of(context).textTheme.titleLarge),
-            SizedBox(height: 10),
+            const SizedBox(height: 10),
             Padding(
-              padding: EdgeInsets.symmetric(horizontal: 20),
+              padding: const EdgeInsets.symmetric(horizontal: 20),
               child: Text(
                 filePath,
                 style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                 textAlign: TextAlign.center,
               ),
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             Text(
               'OpenEXR format file cannot be displayed directly.\n'
               'Use external tools to view or convert the HDR data.',
